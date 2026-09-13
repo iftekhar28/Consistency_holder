@@ -1,0 +1,1578 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>এইচএসসি সায়েন্স: জীবনবৃক্ষ ও আত্মশৃঙ্খলা ট্র্যাকার</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Hind Siliguri & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Hind Siliguri', 'Inter', sans-serif;
+            background-color: #090d16;
+            color: #e2e8f0;
+            overflow-x: hidden;
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+
+        /* Breathing circle pulse animations */
+        @keyframes breatheExpand {
+            0% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.38); opacity: 1; }
+            100% { transform: scale(1); opacity: 0.8; }
+        }
+
+        .breathe-inhale {
+            animation: breatheExpand 12s ease-in-out infinite;
+        }
+
+        /* Soft glassmorphism panel */
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(51, 65, 85, 0.5);
+        }
+
+        /* Canvas container shadow */
+        .canvas-shadow {
+            box-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.7), inset 0 0 30px rgba(0, 0, 0, 0.5);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-start p-2 sm:p-4 md:p-6 select-none">
+
+    <!-- Main App Container -->
+    <main class="w-full max-w-5xl flex flex-col gap-4">
+
+        <!-- Top Header Navigation -->
+        <header class="glass-panel rounded-2xl p-3 sm:p-4 flex flex-wrap items-center justify-between gap-3 shadow-lg border border-slate-800">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-400 flex items-center justify-center text-2xl shadow-lg shadow-emerald-900/30">
+                    🌳
+                </div>
+                <div>
+                    <h1 class="text-base sm:text-xl font-bold text-white tracking-wide flex items-center gap-2">
+                        এইচএসসি সায়েন্স: জীবনবৃক্ষ
+                        <span class="text-[10px] sm:text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                            ৩৬৫ দিনের আত্মশৃঙ্খলা
+                        </span>
+                    </h1>
+                    <p class="text-xs text-slate-400">শারীরিক সুস্থতা, ব্রেন অপ্টিমাইজেশন ও আত্মিক ভারসাম্যের প্রসিডিউরাল সিমুলেশন</p>
+                </div>
+            </div>
+
+            <!-- Stats & Quick Actions -->
+            <div class="flex items-center gap-2 sm:gap-3 flex-wrap">
+                <!-- Root Power (Underground) -->
+                <div class="hidden sm:flex items-center gap-2 bg-slate-800/80 border border-slate-700/60 rounded-xl px-3 py-1.5 text-center">
+                    <span class="text-amber-400 text-base">🪨</span>
+                    <div class="text-left">
+                        <div class="text-[9px] text-slate-400 font-mono uppercase">মূলের শক্তি</div>
+                        <div id="headerRootPower" class="text-xs font-bold text-amber-400">০ XP</div>
+                    </div>
+                </div>
+
+                <!-- Canopy Power (Aboveground) -->
+                <div class="hidden sm:flex items-center gap-2 bg-slate-800/80 border border-slate-700/60 rounded-xl px-3 py-1.5 text-center">
+                    <span class="text-emerald-400 text-base">🌿</span>
+                    <div class="text-left">
+                        <div class="text-[9px] text-slate-400 font-mono uppercase">কান্ডের বিস্তার</div>
+                        <div id="headerCanopyPower" class="text-xs font-bold text-emerald-400">০ XP</div>
+                    </div>
+                </div>
+
+                <!-- Vitality / Health Indicator -->
+                <div class="bg-slate-800/80 border border-slate-700/60 rounded-xl px-3 py-1.5 text-center flex items-center gap-2">
+                    <span id="vitalityIcon" class="text-base animate-pulse">🍃</span>
+                    <div class="text-left">
+                        <div class="text-[9px] text-slate-400 font-mono uppercase">গাছের সতেজতা</div>
+                        <div id="vitalityBadge" class="text-xs font-bold text-emerald-400">১০০% সতেজ</div>
+                    </div>
+                </div>
+
+                <!-- Current Day Display -->
+                <div class="bg-slate-800/80 border border-slate-700/60 rounded-xl px-3 py-1.5 text-center flex items-center gap-2">
+                    <span class="text-emerald-400 text-lg">🌱</span>
+                    <div class="text-left">
+                        <div class="text-[9px] text-slate-400 font-mono uppercase">অভিযাত্রা</div>
+                        <div id="streakDisplay" class="text-xs font-bold text-emerald-300">দিন ১ / ৩৬৫</div>
+                    </div>
+                </div>
+
+                <!-- Sound FX Toggle -->
+                <button id="soundToggleBtn" class="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition" title="সাউন্ড ইফেক্ট অন/অফ">
+                    <span id="soundIcon">🔊</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Simulation Canvas Card -->
+        <div class="glass-panel rounded-2xl p-3 sm:p-4 flex flex-col gap-3 relative overflow-hidden border border-slate-800">
+            <!-- Stage Header Overlay -->
+            <div class="flex items-center justify-between text-xs font-semibold text-slate-300 pb-1 border-b border-slate-800">
+                <div class="flex items-center gap-2">
+                    <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
+                    <span id="stageBadge" class="text-emerald-400 font-bold">পর্যায় ১: সুপ্ত বীজ ও প্রথম অঙ্কুরোদগম</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span id="fruitCounter" class="hidden text-amber-300 font-bold bg-amber-500/10 px-2 py-0.5 rounded-md border border-amber-500/20">
+                        🍎 ফল ধরেছে: ০ টি
+                    </span>
+                    <span class="text-slate-400">আজকের পরিপূর্ণতা:</span>
+                    <span id="dailyPercentBadge" class="text-emerald-400 font-bold">০%</span>
+                </div>
+            </div>
+
+            <!-- Canvas Container -->
+            <div class="relative w-full h-[330px] sm:h-[420px] rounded-xl overflow-hidden bg-slate-950 canvas-shadow border border-slate-800">
+                <canvas id="treeCanvas" class="w-full h-full block cursor-crosshair"></canvas>
+
+                <!-- Floating Canvas Water Overlay Button -->
+                <div class="absolute bottom-3 right-3 flex items-center gap-2 z-10">
+                    <button id="canvasWaterBtn" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-sky-600/90 hover:bg-sky-500 text-white text-xs font-semibold shadow-lg backdrop-blur-md transition border border-sky-400/40 active:scale-95">
+                        <span>💧</span> পানি সিঞ্চন করুন
+                    </button>
+                </div>
+
+                <!-- Live Status Hint Bar -->
+                <div class="absolute top-3 left-3 bg-slate-900/85 backdrop-blur-md px-3 py-1.5 rounded-xl border border-slate-800 text-[11px] text-slate-300 pointer-events-none flex items-center gap-2">
+                    <span class="text-emerald-400">●</span>
+                    <span id="canvasStatusText">রুটিন মেনে চলো; গাছে নতুন পাতা ও শিকড়ের স্পন্দন অনুভূত হচ্ছে।</span>
+                </div>
+            </div>
+
+            <!-- Growth Stage Metrics Info -->
+            <div class="grid grid-cols-3 gap-2 text-center text-xs pt-1">
+                <div class="bg-slate-800/50 rounded-xl p-2 border border-slate-700/30">
+                    <div class="text-amber-300/80 text-[10px] font-semibold">🪨 মূলের গভীরতা (Roots)</div>
+                    <div id="rootMetric" class="font-bold text-amber-400 text-sm mt-0.5">০% গভীরে</div>
+                </div>
+                <div class="bg-slate-800/50 rounded-xl p-2 border border-slate-700/30">
+                    <div class="text-emerald-300/80 text-[10px] font-semibold">🌿 শাখা ও পাতার রূপ</div>
+                    <div id="leafMetric" class="font-bold text-emerald-400 text-sm mt-0.5">সতেজ সবুজ</div>
+                </div>
+                <div class="bg-slate-800/50 rounded-xl p-2 border border-slate-700/30">
+                    <div class="text-teal-300/80 text-[10px] font-semibold">✨ স্বাস্থ্য অবস্থা</div>
+                    <div id="maturityMetric" class="font-bold text-teal-300 text-sm mt-0.5">১ম পর্যায়</div>
+                </div>
+            </div>
+
+            <!-- Biological Pathology & Symptom Diagnostic Bar -->
+            <div class="mt-1 bg-slate-900/80 border border-slate-800 rounded-xl p-2.5">
+                <div class="flex items-center justify-between mb-1.5">
+                    <span class="text-[11px] font-bold text-slate-300 flex items-center gap-1">
+                        <span>🩺</span> উদ্ভিদের রোগলক্ষণ ও স্বাস্থ্য ডায়াগনস্টিক:
+                    </span>
+                    <span id="diagnosticHealthStatus" class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                        সম্পূর্ণ নিরোগ ও বলিষ্ঠ
+                    </span>
+                </div>
+                <!-- Dynamic Symptom Badges -->
+                <div id="symptomBadgesList" class="flex flex-wrap gap-1.5 text-[10px]">
+                    <span class="text-slate-400 italic">কোনো ব্যাধি নেই; নিয়মিত অভ্যাসে গাছ পরিপূর্ণ সুস্থ!</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 365 Days Time-Travel Slider (Preview Evolution) -->
+        <div class="glass-panel rounded-2xl p-3 sm:p-4 border border-slate-800">
+            <div class="flex items-center justify-between text-xs font-semibold mb-2">
+                <span class="text-slate-300 flex items-center gap-1.5">
+                    <span>⏳</span> ৩৬৫ দিনের বৃদ্ধি টাইমলাইন (স্লাইড করে রূপান্তর দেখুন):
+                </span>
+                <span id="sliderDayLabel" class="text-emerald-400 font-bold font-mono">দিন ১ (সুপ্ত বীজ)</span>
+            </div>
+            <input type="range" id="daySlider" min="1" max="365" value="1" class="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-emerald-500">
+            <div class="flex justify-between text-[10px] text-slate-500 mt-1 font-mono">
+                <span>দিন ১ (বীজ)</span>
+                <span>দিন ৬০ (চারাগাছ)</span>
+                <span>দিন ১৮০ (শাখা-প্রশাখা)</span>
+                <span>দিন ২৭০ (ফুল ও মুকুল)</span>
+                <span>দিন ৩৬৫ (ফলবান মহীরুহ)</span>
+            </div>
+        </div>
+
+        <!-- Interactive 1-1-1 Morning Breathing Module -->
+        <div class="glass-panel rounded-2xl p-4 border border-slate-800">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                <div class="flex items-center gap-2">
+                    <span class="text-xl">🫁</span>
+                    <div>
+                        <h2 class="text-sm sm:text-base font-bold text-white">ভোরের ১-১-১ রিদমিক ব্রিদিং টেকনিক</h2>
+                        <p class="text-[11px] text-slate-400">৪ সেকেন্ড ইনহেল ➔ ৪ সেকেন্ড হোল্ড ➔ ৪ সেকেন্ড এক্সহেল (আলফা ব্রেনওয়েভ সক্রিয় করে)</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button id="breathingActionBtn" class="px-3 py-1.5 rounded-xl bg-teal-600 hover:bg-teal-500 text-white text-xs font-semibold transition active:scale-95 flex items-center gap-1">
+                        <span id="breathingBtnIcon">▶</span> <span id="breathingBtnText">অনুশীলন শুরু করুন</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Interactive Breathing Circle Display -->
+            <div id="breathingVisualContainer" class="hidden flex-col items-center justify-center py-4 bg-slate-900/60 rounded-xl border border-slate-800">
+                <div class="relative w-36 h-36 flex items-center justify-center mb-3">
+                    <div id="breathingPulsar" class="absolute w-24 h-24 rounded-full bg-teal-500/20 border-2 border-teal-400 flex items-center justify-center transition-all duration-1000"></div>
+                    <div class="relative z-10 text-center">
+                        <div id="breathingPhaseText" class="text-xs font-bold text-teal-300">প্রস্তুত হোন...</div>
+                        <div id="breathingSecondsText" class="text-2xl font-mono font-bold text-white mt-0.5">৪</div>
+                    </div>
+                </div>
+                <div id="breathingPrompt" class="text-xs text-slate-300 text-center font-medium px-4">
+                    সোজা হয়ে বসুন, ফুসফুসে বাতাস ধীরে ধীরে টেনে নিন...
+                </div>
+            </div>
+        </div>
+
+        <!-- Daily Discipline Checklist & Action Panels -->
+        <div class="glass-panel rounded-2xl p-4 border border-slate-800 flex flex-col gap-4">
+            <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+                <div>
+                    <h2 class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
+                        <span>📋</span> আজকের বিজ্ঞানসম্মত আত্মশৃঙ্খলা ও রুটিন
+                    </h2>
+                    <p class="text-[11px] text-slate-400">প্রতিটি অভ্যাস সম্পন্ন করলে সরাসরি মূলের গভীরতা ও কান্ডের সতেজতা বৃদ্ধি পাবে</p>
+                </div>
+                <div class="text-right">
+                    <span id="progressBarLabel" class="text-xs font-semibold text-emerald-400">০ / ১০ টি সম্পন্ন</span>
+                    <div class="w-24 sm:w-36 h-1.5 bg-slate-800 rounded-full mt-1 overflow-hidden">
+                        <div id="dailyProgressBar" class="h-full bg-emerald-500 transition-all duration-500 w-0"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Task Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+
+                <!-- 1. Spiritual Root: Salah & Tilawat -->
+                <div class="bg-slate-900/60 rounded-xl p-3 border border-slate-800/80 flex flex-col gap-2">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold text-amber-300 flex items-center gap-1.5">
+                            <span>🕌</span> পাঁচ ওয়াক্ত নামাজ (মানসিক রিসেট)
+                        </span>
+                        <span class="text-[10px] text-amber-400/90 font-mono bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
+                            মূল গভীর করে (+২৫ XP)
+                        </span>
+                    </div>
+                    <div class="grid grid-cols-5 gap-1 pt-1">
+                        <button data-prayer="fajr" class="prayer-btn py-1.5 px-1 rounded-lg bg-slate-800 text-[11px] text-slate-300 hover:bg-slate-700 transition border border-slate-700/50 flex flex-col items-center">
+                            <span>ফজর</span>
+                            <span class="text-[9px] text-slate-500 mt-0.5">০৫:০০ AM</span>
+                        </button>
+                        <button data-prayer="dhuhr" class="prayer-btn py-1.5 px-1 rounded-lg bg-slate-800 text-[11px] text-slate-300 hover:bg-slate-700 transition border border-slate-700/50 flex flex-col items-center">
+                            <span>জোহর</span>
+                            <span class="text-[9px] text-slate-500 mt-0.5">০১:১৫ PM</span>
+                        </button>
+                        <button data-prayer="asr" class="prayer-btn py-1.5 px-1 rounded-lg bg-slate-800 text-[11px] text-slate-300 hover:bg-slate-700 transition border border-slate-700/50 flex flex-col items-center">
+                            <span>আসর</span>
+                            <span class="text-[9px] text-slate-500 mt-0.5">০৫:১৫ PM</span>
+                        </button>
+                        <button data-prayer="maghrib" class="prayer-btn py-1.5 px-1 rounded-lg bg-slate-800 text-[11px] text-slate-300 hover:bg-slate-700 transition border border-slate-700/50 flex flex-col items-center">
+                            <span>মাগরিব</span>
+                            <span class="text-[9px] text-slate-500 mt-0.5">০৬:০০ PM</span>
+                        </button>
+                        <button data-prayer="isha" class="prayer-btn py-1.5 px-1 rounded-lg bg-slate-800 text-[11px] text-slate-300 hover:bg-slate-700 transition border border-slate-700/50 flex flex-col items-center">
+                            <span>এশা</span>
+                            <span class="text-[9px] text-slate-500 mt-0.5">০৯:১৫ PM</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 2. Quran Tilawat -->
+                <div class="bg-slate-900/60 rounded-xl p-3 border border-slate-800/80 flex items-center justify-between">
+                    <div class="flex items-center gap-2.5">
+                        <input type="checkbox" id="task_quran" class="task-checkbox w-4 h-4 rounded accent-emerald-500 cursor-pointer">
+                        <label for="task_quran" class="cursor-pointer">
+                            <div class="text-xs font-bold text-white flex items-center gap-1">
+                                <span>📖</span> অর্থসহ কুরআন অধ্যয়ন ও তিলাওয়াত
+                            </div>
+                            <div class="text-[10px] text-slate-400">ফজরের পর ১০-১৫ মিনিট গভীর মনঃসংযোগ</div>
+                        </label>
+                    </div>
+                    <span class="text-[10px] text-amber-400 font-mono bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
+                        মূল (+১০ XP)
+                    </span>
+                </div>
+
+                <!-- 3. Hydration Protocol (3.5 - 4.5 Liters) -->
+                <div class="bg-slate-900/60 rounded-xl p-3 border border-slate-800/80 flex flex-col gap-2">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <div class="text-xs font-bold text-sky-300 flex items-center gap-1.5">
+                                <span>💧</span> পানি পানের নিয়ম (৩.৫ থেকে ৪.৫ লিটার)
+                            </div>
+                            <div class="text-[10px] text-slate-400">প্রতি ৫০ মিনিট পড়ার পর ১৫০-২০০ মিলি সিপ করে পান</div>
+                        </div>
+                        <div class="text-right">
+                            <span id="waterLitersText" class="text-xs font-bold text-sky-400 font-mono">০.০ / ৪.০ লিটার</span>
+                            <div class="text-[9px] text-slate-500">১৬ গ্লাস লক্ষ্যমাত্রা</div>
+                        </div>
+                    </div>
+                    <!-- Quick Glasses Stepper -->
+                    <div class="flex items-center gap-1.5 pt-1 overflow-x-auto pb-1">
+                        <button id="addGlassBtn" class="px-2.5 py-1 rounded-lg bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold transition active:scale-95 flex items-center gap-1">
+                            <span>+১ গ্লাস</span>
+                        </button>
+                        <button id="resetWaterBtn" class="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 text-xs transition">
+                            রিসেট
+                        </button>
+                        <!-- 16 Interactive Glasses Icons -->
+                        <div id="glassesGrid" class="flex items-center gap-1 ml-auto">
+                            <!-- Glasses injected dynamically -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. Morning 1-1-1 Breathing Task -->
+                <div class="bg-slate-900/60 rounded-xl p-3 border border-slate-800/80 flex items-center justify-between">
+                    <div class="flex items-center gap-2.5">
+                        <input type="checkbox" id="task_breathing" class="task-checkbox w-4 h-4 rounded accent-emerald-500 cursor-pointer">
+                        <label for="task_breathing" class="cursor-pointer">
+                            <div class="text-xs font-bold text-white flex items-center gap-1">
+                                <span>🫁</span> ভোরের ১-১-১ রিদমিক ব্রিদিং সম্পন্ন
+                            </div>
+                            <div class="text-[10px] text-slate-400">ঘুম ভাঙার পর ৫-৭ মিনিট ছন্দোবদ্ধ শ্বাস</div>
+                        </label>
+                    </div>
+                    <span class="text-[10px] text-teal-400 font-mono bg-teal-500/10 px-2 py-0.5 rounded border border-teal-500/20">
+                        মূল (+১০ XP)
+                    </span>
+                </div>
+
+                <!-- 5. 10 Min Workout / Morning Stretching -->
+                <div class="bg-slate-900/60 rounded-xl p-3 border border-slate-800/80 flex items-center justify-between">
+                    <div class="flex items-center gap-2.5">
+                        <input type="checkbox" id="task_exercise" class="task-checkbox w-4 h-4 rounded accent-emerald-500 cursor-pointer">
+                        <label for="task_exercise" class="cursor-pointer">
+                            <div class="text-xs font-bold text-white flex items-center gap-1">
+                                <span>🏃‍♂️</span> ১০ মিনিট ফ্রি-হ্যান্ড এক্সারসাইজ বা স্ট্রেচিং
+                            </div>
+                            <div class="text-[10px] text-slate-400">রক্ত সঞ্চালন ও মেটাবলিজম বৃদ্ধি</div>
+                        </label>
+                    </div>
+                    <span class="text-[10px] text-emerald-400 font-mono bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                        কান্ড (+১০ XP)
+                    </span>
+                </div>
+
+                <!-- 6. Screen & Dopamine Detox -->
+                <div class="bg-slate-900/60 rounded-xl p-3 border border-slate-800/80 flex items-center justify-between">
+                    <div class="flex items-center gap-2.5">
+                        <input type="checkbox" id="task_screendetox" class="task-checkbox w-4 h-4 rounded accent-emerald-500 cursor-pointer">
+                        <label for="task_screendetox" class="cursor-pointer">
+                            <div class="text-xs font-bold text-white flex items-center gap-1">
+                                <span>📵</span> স্ক্রিন ও ডোপামিন ডিটক্স (ফোন দূরে রাখা)
+                            </div>
+                            <div class="text-[10px] text-slate-400">সাদা-কালো মোড, নোটিফিকেশন অফ, পড়ার টেবিলে ফোন নয়</div>
+                        </label>
+                    </div>
+                    <span class="text-[10px] text-emerald-400 font-mono bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                        শাখা (+১০ XP)
+                    </span>
+                </div>
+
+                <!-- 7. Brain Food & Nutrition -->
+                <div class="bg-slate-900/60 rounded-xl p-3 border border-slate-800/80 flex items-center justify-between">
+                    <div class="flex items-center gap-2.5">
+                        <input type="checkbox" id="task_diet" class="task-checkbox w-4 h-4 rounded accent-emerald-500 cursor-pointer">
+                        <label for="task_diet" class="cursor-pointer">
+                            <div class="text-xs font-bold text-white flex items-center gap-1">
+                                <span>🥗</span> ব্রেন ফুড ও সন্ধ্যা ৭টার পর ক্যাফেইন কার্ফু
+                            </div>
+                            <div class="text-[10px] text-slate-400">ভাত কম, বাদাম/ডিম/ফল ও ৭টার পর চা-কফি পরিহার</div>
+                        </label>
+                    </div>
+                    <span class="text-[10px] text-emerald-400 font-mono bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                        পাতা (+১০ XP)
+                    </span>
+                </div>
+
+                <!-- 8. Eye Care & 20-20-20 Rule -->
+                <div class="bg-slate-900/60 rounded-xl p-3 border border-slate-800/80 flex items-center justify-between">
+                    <div class="flex items-center gap-2.5">
+                        <input type="checkbox" id="task_eyecare" class="task-checkbox w-4 h-4 rounded accent-emerald-500 cursor-pointer">
+                        <label for="task_eyecare" class="cursor-pointer">
+                            <div class="text-xs font-bold text-white flex items-center gap-1">
+                                <span>👁️</span> ২০-২০-২০ নিয়ম ও চোখে পানির ঝাপটা
+                            </div>
+                            <div class="text-[10px] text-slate-400">প্রতি ২০ মিনিট পর ২০ ফুট দূরে দেখা ও চোখের ক্লান্তি দূর</div>
+                        </label>
+                    </div>
+                    <span class="text-[10px] text-teal-400 font-mono bg-teal-500/10 px-2 py-0.5 rounded border border-teal-500/20">
+                        সতেজতা (+১০ XP)
+                    </span>
+                </div>
+
+                <!-- 9. Afternoon Power Nap -->
+                <div class="bg-slate-900/60 rounded-xl p-3 border border-slate-800/80 flex items-center justify-between">
+                    <div class="flex items-center gap-2.5">
+                        <input type="checkbox" id="task_nap" class="task-checkbox w-4 h-4 rounded accent-emerald-500 cursor-pointer">
+                        <label for="task_nap" class="cursor-pointer">
+                            <div class="text-xs font-bold text-white flex items-center gap-1">
+                                <span>🛋️</span> দুপুরের ২০-২৫ মিনিটের পাওয়ার ন্যাপ
+                            </div>
+                            <div class="text-[10px] text-slate-400">বিকেলের স্টাডি সেশনের জন্য মেমোরি কনসোলিডেশন</div>
+                        </label>
+                    </div>
+                    <span class="text-[10px] text-emerald-400 font-mono bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                        কান্ড (+৫ XP)
+                    </span>
+                </div>
+
+                <!-- 10. Deep REM Sleep (5.5 - 6 Hours) -->
+                <div class="bg-slate-900/60 rounded-xl p-3 border border-slate-800/80 flex items-center justify-between">
+                    <div class="flex items-center gap-2.5">
+                        <input type="checkbox" id="task_sleep" class="task-checkbox w-4 h-4 rounded accent-emerald-500 cursor-pointer">
+                        <label for="task_sleep" class="cursor-pointer">
+                            <div class="text-xs font-bold text-white flex items-center gap-1">
+                                <span>🌙</span> গভীর ও সময়নিষ্ঠ রাতের ঘুম (১০:৩০ PM - ০৪:৩০ AM)
+                            </div>
+                            <div class="text-[10px] text-slate-400">গ্লাইমফ্যাটিক সিস্টেম ব্রেনের টক্সিন পরিষ্কার করে</div>
+                        </label>
+                    </div>
+                    <span class="text-[10px] text-emerald-400 font-mono bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                        পুষ্টি (+১৫ XP)
+                    </span>
+                </div>
+            </div>
+
+            <!-- Bottom Daily Lock Button & Reset -->
+            <div class="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-800 mt-1">
+                <div class="text-xs text-slate-400">
+                    💡 <span class="text-slate-300 font-semibold">বিজ্ঞানের সত্য:</span> যে অভ্যাস আজ পালন করবে না, গাছে তাৎক্ষণিক সেই অঙ্গ দুর্বল হবে।
+                </div>
+                <div class="flex items-center gap-2 ml-auto">
+                    <button id="resetTodayBtn" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition">
+                        আজকের টাস্ক রিসেট
+                    </button>
+                    <button id="lockDayBtn" class="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white text-xs font-bold shadow-lg shadow-emerald-900/30 transition active:scale-95 flex items-center gap-1.5">
+                        <span>🌟</span> আজকের প্রবৃদ্ধি লক করুন ও পরবর্তী দিনে যান
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer Scientific Wisdom -->
+        <footer class="text-center text-[11px] text-slate-500 py-3">
+            এইচএসসি সায়েন্স স্টুডেন্ট ওয়েলনেস আর্কিটেকচার • ব্রেন ওয়েভস, গ্লাইমফ্যাটিক ড্রেইনেজ ও ডোপামিন রিসেট
+        </footer>
+    </main>
+
+    <script>
+        // ==========================================
+        // APPLICATION STATE & DATA STRUCTURES
+        // ==========================================
+        const state = {
+            day: 1,
+            maxDays: 365,
+            tasks: {
+                breathing: false,
+                exercise: false,
+                quran: false,
+                screendetox: false,
+                diet: false,
+                eyecare: false,
+                nap: false,
+                sleep: false
+            },
+            prayers: {
+                fajr: false,
+                dhuhr: false,
+                asr: false,
+                maghrib: false,
+                isha: false
+            },
+            waterGlasses: 0,
+            waterTargetGlasses: 16,
+            soundEnabled: true,
+            wateringDrops: [],
+            floatingMessages: [],
+            fallingLeaves: [],
+
+            // Growth interpolation factors (0 to 1)
+            currentRootFactor: 0.04,
+            targetRootFactor: 0.04,
+            currentCanopyFactor: 0.04,
+            targetCanopyFactor: 0.04,
+
+            // Overall biological wilting (0 = fresh green, 1 = dry withered)
+            currentWiltFactor: 0.0,
+            targetWiltFactor: 0.0,
+
+            // Specific botanical pathology factors (0 = healthy, 1 = severe)
+            symptoms: {
+                dehydration: 0.0,    // Thirst -> soil fissures & dry trunk
+                trunkWeakness: 0.0,  // No exercise -> bent, drooping trunk posture
+                digitalPests: 0.0,   // High screen time -> purple toxic smog & pests
+                leafBurn: 0.0,       // No eye care -> scorched black leaf tips
+                chlorosis: 0.0,      // Poor diet -> pale yellow spots on leaves
+                barkFatigue: 0.0     // No sleep/nap -> dark decaying withered bark
+            },
+            currentSymptoms: {
+                dehydration: 0.0,
+                trunkWeakness: 0.0,
+                digitalPests: 0.0,
+                leafBurn: 0.0,
+                chlorosis: 0.0,
+                barkFatigue: 0.0
+            },
+            pests: []
+        };
+
+        // Web Audio API Sound Synthesizer (Zero external dependencies)
+        const soundEngine = {
+            ctx: null,
+            init() {
+                if (!this.ctx) {
+                    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                    if (AudioCtx) this.ctx = new AudioCtx();
+                }
+            },
+            playTone(freq, type = 'sine', duration = 0.25, volume = 0.08) {
+                if (!state.soundEnabled) return;
+                try {
+                    this.init();
+                    if (!this.ctx) return;
+                    if (this.ctx.state === 'suspended') this.ctx.resume();
+
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+
+                    osc.type = type;
+                    osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+
+                    gain.gain.setValueAtTime(volume, this.ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + duration);
+
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+
+                    osc.start();
+                    osc.stop(this.ctx.currentTime + duration);
+                } catch (e) {
+                    console.error("Audio error", e);
+                }
+            },
+            waterDrop() {
+                this.playTone(650, 'sine', 0.15, 0.09);
+                setTimeout(() => this.playTone(850, 'sine', 0.12, 0.07), 60);
+            },
+            leafChime() {
+                this.playTone(523.25, 'triangle', 0.35, 0.08); // C5
+                setTimeout(() => this.playTone(659.25, 'triangle', 0.35, 0.08), 90); // E5
+            },
+            rootChime() {
+                this.playTone(220, 'sine', 0.5, 0.12); // Low warm tone
+            },
+            breatheChime(freq = 440) {
+                this.playTone(freq, 'sine', 0.8, 0.06);
+            }
+        };
+
+        // Bengali number converter helper
+        function toBengaliNumber(num) {
+            const bengaliDigits = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
+            return num.toString().replace(/\d/g, d => bengaliDigits[d]);
+        }
+
+        // Stage classifier based on Day
+        function getStageForDay(day) {
+            if (day <= 15) return { name: "পর্যায় ১: সুপ্ত বীজ ও প্রথম অঙ্কুরোদগম", mat: "১ম পর্যায় (বীজ)", status: "মাটির গভীরে শিকড়ের উন্মেষ ঘটছে..." };
+            if (day <= 60) return { name: "পর্যায় ২: নবীন চারাগাছ ও কচি পল্লব", mat: "২য় পর্যায় (চারা)", status: "কচি পাতা সূর্যের দিকে প্রসারিত হচ্ছে..." };
+            if (day <= 150) return { name: "পর্যায় ৩: বলিষ্ঠ কান্ড ও ডালপালার বিস্তার", mat: "৩য় পর্যায় (বৃক্ষ)", status: "কান্ড মজবুত হচ্ছে ও শাখা বিস্তৃত হচ্ছে..." };
+            if (day <= 270) return { name: "পর্যায় ৪: ঘন পত্রপল্লব ও ফুল-মুকুল", mat: "৪র্থ পর্যায় (মুকুল)", status: "সুগভীর শিকড় ও সুশোভিত মুকুল..." };
+            return { name: "পর্যায় ৫: ফলবান মহীরুহ (স্বর্ণালী পূর্ণতা)", mat: "৫ম পর্যায় (ফলবান)", status: "৩৬৫ দিনের তপস্যায় বৃক্ষ ফলে সুশোভিত!" };
+        }
+
+        // Calculate Current Daily Root and Canopy XP
+        function getTodayMetrics() {
+            let rootXP = 0;
+            let canopyXP = 0;
+
+            // Prayers (Root 5 XP each)
+            Object.values(state.prayers).forEach(done => {
+                if (done) rootXP += 5;
+            });
+
+            // Quran & Tilawat (Root 10 XP)
+            if (state.tasks.quran) rootXP += 10;
+
+            // Morning Breathing (Root 10 XP)
+            if (state.tasks.breathing) rootXP += 10;
+
+            // Eye care (Root 10 XP)
+            if (state.tasks.eyecare) rootXP += 10;
+
+            // Canopy Habit XP
+            if (state.tasks.exercise) canopyXP += 10;
+            if (state.tasks.screendetox) canopyXP += 10;
+            if (state.tasks.diet) canopyXP += 10;
+            if (state.tasks.nap) canopyXP += 5;
+            if (state.tasks.sleep) canopyXP += 15;
+
+            // Water (up to 16 glasses = 16 XP to canopy)
+            canopyXP += Math.min(16, state.waterGlasses);
+
+            return { rootXP, canopyXP };
+        }
+
+        function getCompletedTasksCount() {
+            let count = 0;
+            const prayerCount = Object.values(state.prayers).filter(Boolean).length;
+            if (prayerCount === 5) count += 1;
+            if (state.tasks.quran) count += 1;
+            if (state.waterGlasses >= 12) count += 1;
+            if (state.tasks.breathing) count += 1;
+            if (state.tasks.exercise) count += 1;
+            if (state.tasks.screendetox) count += 1;
+            if (state.tasks.diet) count += 1;
+            if (state.tasks.eyecare) count += 1;
+            if (state.tasks.nap) count += 1;
+            if (state.tasks.sleep) count += 1;
+            return count;
+        }
+
+        function calculateTargetFactors() {
+            const { rootXP, canopyXP } = getTodayMetrics();
+            const completedCount = getCompletedTasksCount();
+            const baseDayFactor = (state.day - 1) / state.maxDays; // 0 to 1 over 365 days
+
+            const todayRootRatio = Math.min(1.0, rootXP / 55);
+            const todayCanopyRatio = Math.min(1.0, canopyXP / 60);
+
+            // Responsive growth reflecting day timeline + today's habits
+            const targetRoot = Math.min(1.0, Math.max(0.04, (baseDayFactor * 0.85) + (todayRootRatio * 0.25)));
+            const targetCanopy = Math.min(1.0, Math.max(0.04, (baseDayFactor * 0.85) + (todayCanopyRatio * 0.25)));
+
+            state.targetRootFactor = targetRoot;
+            state.targetCanopyFactor = targetCanopy;
+
+            // ==========================================
+            // BOTANICAL PATHOLOGY & SYMPTOM CONDITIONS
+            // ==========================================
+            // 1. Water Deficit -> Dehydration (Cracked dry earth)
+            const waterRatio = state.waterGlasses / state.waterTargetGlasses;
+            state.symptoms.dehydration = Math.max(0, 1.0 - (waterRatio * 1.5));
+
+            // 2. No Exercise -> Weak, leaning and drooping trunk
+            state.symptoms.trunkWeakness = state.tasks.exercise ? 0.0 : 0.85;
+
+            // 3. No Screen Detox -> Digital smog & pest swarms
+            state.symptoms.digitalPests = state.tasks.screendetox ? 0.0 : 0.90;
+
+            // 4. No Eye Care -> Scorched brown/black leaf margins
+            state.symptoms.leafBurn = state.tasks.eyecare ? 0.0 : 0.80;
+
+            // 5. Poor Diet -> Chlorosis (pale yellow spotted leaves)
+            state.symptoms.chlorosis = state.tasks.diet ? 0.0 : 0.85;
+
+            // 6. Sleep Deprivation -> Dark bark decay & exhaustion
+            const sleepScore = (state.tasks.sleep ? 0.7 : 0) + (state.tasks.nap ? 0.3 : 0);
+            state.symptoms.barkFatigue = Math.max(0, 1.0 - sleepScore);
+
+            // Combined Wilting Score
+            let wilt = 0.0;
+            if (completedCount === 0) {
+                wilt = 0.90;
+            } else if (rootXP === 0) {
+                wilt = 0.70;
+            } else if (rootXP < 15) {
+                wilt = 0.45;
+            } else if (completedCount < 3) {
+                wilt = 0.32;
+            } else {
+                wilt = 0.05;
+            }
+
+            if (state.symptoms.dehydration > 0.5) {
+                wilt = Math.min(1.0, wilt + 0.2);
+            }
+
+            state.targetWiltFactor = wilt;
+        }
+
+        // ==========================================
+        // PROCEDURAL CANVAS SIMULATION ENGINE
+        // ==========================================
+        const canvas = document.getElementById("treeCanvas");
+        const ctx = canvas.getContext("2d");
+        let width = 0;
+        let height = 0;
+        let time = 0;
+        let animationFrameId = null;
+
+        function resizeCanvas() {
+            const rect = canvas.parentElement.getBoundingClientRect();
+            width = rect.width;
+            height = rect.height;
+            canvas.width = width * window.devicePixelRatio;
+            canvas.height = height * window.devicePixelRatio;
+            ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+        }
+        window.addEventListener("resize", resizeCanvas);
+
+        // Recursive Subterranean Roots
+        function drawRoots(x, y, length, angle, depth, maxDepth, branchWidth, rootFactor) {
+            if (depth > maxDepth || length < 3) return;
+
+            const endX = x + Math.cos(angle) * length;
+            const endY = y + Math.sin(angle) * length;
+
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.lineTo(endX, endY);
+
+            const wilt = state.currentWiltFactor;
+            const dehydration = state.currentSymptoms.dehydration;
+            const rootAlpha = Math.min(0.95, (0.35 + (rootFactor * 0.5)) * (1 - Math.max(wilt, dehydration) * 0.4));
+
+            // Healthy root = glowing warm amber/gold; Starved root = dusty grey-brown
+            const rR = Math.round(224 * (1 - wilt * 0.45) + 120 * (wilt * 0.45));
+            const rG = Math.round(130 * (1 - wilt * 0.5) + 85 * (wilt * 0.5));
+            const rB = Math.round(20 * (1 - wilt * 0.5) + 60 * (wilt * 0.5));
+
+            ctx.strokeStyle = `rgba(${rR}, ${rG}, ${rB}, ${rootAlpha})`;
+            ctx.lineWidth = branchWidth;
+            ctx.lineCap = "round";
+            ctx.stroke();
+
+            // Root tip bioluminescent node when roots are nourished
+            if (depth === maxDepth && rootFactor > 0.08 && wilt < 0.6) {
+                ctx.beginPath();
+                ctx.arc(endX, endY, Math.max(1.5, branchWidth * 0.9), 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(251, 191, 36, ${0.85 * (1 - wilt)})`;
+                ctx.shadowColor = "#f59e0b";
+                ctx.shadowBlur = Math.round(8 * (1 - wilt));
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            }
+
+            const angleSpread = 0.36 + (0.12 * Math.sin(depth * 1.5 + time * 0.2));
+            const shrink = 0.75 + (rootFactor * 0.05);
+
+            drawRoots(endX, endY, length * shrink, angle - angleSpread, depth + 1, maxDepth, branchWidth * 0.68, rootFactor);
+            drawRoots(endX, endY, length * shrink, angle + angleSpread, depth + 1, maxDepth, branchWidth * 0.68, rootFactor);
+
+            if (depth <= 2 && rootFactor > 0.15) {
+                drawRoots(endX, endY, length * 0.88, angle + 0.03, depth + 1, maxDepth, branchWidth * 0.74, rootFactor);
+            }
+        }
+
+        // Recursive Trunk and Canopy Branches
+        function drawBranch(x, y, length, angle, depth, maxDepth, branchWidth, wind, canopyFactor) {
+            if (depth > maxDepth || length < 3) return;
+
+            const wilt = state.currentWiltFactor;
+            const weakness = state.currentSymptoms.trunkWeakness;
+            const fatigue = state.currentSymptoms.barkFatigue;
+
+            // Physical neglect leans & sags the trunk
+            const sagCurve = (depth === 1) ? (weakness * 0.22) : 0;
+            const droop = (depth / maxDepth) * (wilt * 0.18 + weakness * 0.12);
+            const sway = Math.sin(time + depth * 0.8) * wind * (depth / maxDepth);
+            const currentAngle = angle + sway + droop + sagCurve;
+
+            const endX = x + Math.cos(currentAngle) * length;
+            const endY = y + Math.sin(currentAngle) * length;
+
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.lineTo(endX, endY);
+
+            // Bark color shifts to dark grey-ash if sleep is neglected
+            const trunkHue = Math.max(16, 28 - (fatigue * 14));
+            const trunkSat = Math.max(12, 46 - (wilt * 25) - (fatigue * 20));
+            const trunkLightness = Math.max(11, (22 + (depth * 3.5)) * (1 - (fatigue * 0.35)));
+
+            ctx.strokeStyle = `hsl(${trunkHue}, ${trunkSat}%, ${trunkLightness}%)`;
+            ctx.lineWidth = branchWidth;
+            ctx.lineCap = "round";
+            ctx.stroke();
+
+            // Terminal leaves, blossoms and fruits
+            if (depth >= maxDepth - 1) {
+                drawLeavesAndFruits(endX, endY, currentAngle, canopyFactor, depth);
+            }
+
+            const shrink = 0.72 + (canopyFactor * 0.06);
+            const spread = 0.42 + (0.05 * Math.sin(depth + time * 0.4));
+
+            drawBranch(endX, endY, length * shrink, currentAngle - spread, depth + 1, maxDepth, branchWidth * 0.68, wind, canopyFactor);
+            drawBranch(endX, endY, length * shrink, currentAngle + spread, depth + 1, maxDepth, branchWidth * 0.68, wind, canopyFactor);
+
+            if (canopyFactor > 0.4 && depth < maxDepth - 2) {
+                drawBranch(endX, endY, length * 0.62, currentAngle + 0.02, depth + 2, maxDepth, branchWidth * 0.6, wind, canopyFactor);
+            }
+        }
+
+        function drawLeavesAndFruits(x, y, angle, canopyFactor, depth) {
+            const wilt = state.currentWiltFactor;
+            const leafBurn = state.currentSymptoms.leafBurn;     // Eyecare neglect -> burnt edges
+            const chlorosis = state.currentSymptoms.chlorosis;   // Diet neglect -> pale spots
+            const leafSize = Math.max(3, (4 + (canopyFactor * 9.5)) * (1 - wilt * 0.18));
+
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(angle + (wilt * 0.45));
+
+            // Dynamic RGB blending: green -> chlorotic -> yellow-brown wilted
+            let leafR = Math.round(34 + (215 - 34) * wilt + (chlorosis * 45));
+            let leafG = Math.round(197 + (145 - 197) * wilt + (chlorosis * 20));
+            let leafB = Math.round(94 + (18 - 94) * wilt - (chlorosis * 35));
+
+            leafR = Math.min(255, Math.max(0, leafR));
+            leafG = Math.min(255, Math.max(0, leafG));
+            leafB = Math.min(255, Math.max(0, leafB));
+
+            // Primary Leaf
+            ctx.beginPath();
+            ctx.ellipse(leafSize * 0.6, -leafSize * 0.4, leafSize, leafSize * (0.5 - wilt * 0.18), Math.PI / 4, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(${leafR}, ${leafG}, ${leafB}, ${0.85 - wilt * 0.15})`;
+            ctx.fill();
+
+            // Eye care symptom: Scorched burnt tips on leaves
+            if (leafBurn > 0.3) {
+                ctx.beginPath();
+                ctx.ellipse(leafSize * 1.05, -leafSize * 0.7, leafSize * 0.35, leafSize * 0.22, Math.PI / 4, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(55, 25, 10, ${leafBurn * 0.85})`;
+                ctx.fill();
+            }
+
+            // Diet symptom: Chlorosis pale spots
+            if (chlorosis > 0.4) {
+                ctx.beginPath();
+                ctx.arc(leafSize * 0.5, -leafSize * 0.35, Math.max(1, leafSize * 0.2), 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(254, 240, 138, ${chlorosis * 0.75})`;
+                ctx.fill();
+            }
+
+            // Secondary Leaf
+            ctx.beginPath();
+            ctx.ellipse(-leafSize * 0.5, -leafSize * 0.3, leafSize * 0.9, leafSize * (0.45 - wilt * 0.15), -Math.PI / 4, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(${leafR}, ${leafG}, ${leafB}, ${0.9 - wilt * 0.15})`;
+            ctx.fill();
+
+            if (leafBurn > 0.3) {
+                ctx.beginPath();
+                ctx.ellipse(-leafSize * 0.9, -leafSize * 0.55, leafSize * 0.3, leafSize * 0.18, -Math.PI / 4, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(55, 25, 10, ${leafBurn * 0.85})`;
+                ctx.fill();
+            }
+
+            // Falling leaves particle generator if dry or burned
+            if ((wilt > 0.5 || leafBurn > 0.7) && Math.random() < 0.008 && state.fallingLeaves.length < 25) {
+                state.fallingLeaves.push({
+                    x: x + (Math.random() - 0.5) * 10,
+                    y: y,
+                    vx: (Math.random() - 0.5) * 0.8 + 0.3,
+                    vy: 0.8 + Math.random() * 1.2,
+                    rot: Math.random() * Math.PI * 2,
+                    rotSpeed: (Math.random() - 0.5) * 0.08,
+                    size: 3 + Math.random() * 3,
+                    color: leafBurn > 0.5 ? 'rgba(78, 42, 20, 0.85)' : `rgba(${leafR}, ${leafG}, ${leafB}, 0.85)`
+                });
+            }
+
+            // Pink blossoms (Day 180+)
+            if (canopyFactor >= 0.45 && wilt < 0.45 && chlorosis < 0.5) {
+                const flowerAlpha = 1 - (wilt * 1.8);
+                ctx.beginPath();
+                ctx.arc(0, -leafSize * 0.8, (2.5 + (canopyFactor * 2.2)) * (1 - wilt * 0.3), 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(251, 207, 232, ${Math.max(0, flowerAlpha)})`;
+                ctx.shadowColor = "#f472b6";
+                ctx.shadowBlur = Math.round(6 * (1 - wilt));
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            }
+
+            // Red/Gold ripe fruits (Day 270+)
+            if (canopyFactor >= 0.7) {
+                const fruitRadius = (4 + (canopyFactor * 5.2)) * (1 - (wilt + chlorosis * 0.3) * 0.3);
+                ctx.beginPath();
+                ctx.arc(leafSize * 0.3, leafSize * 0.6, Math.max(2, fruitRadius), 0, Math.PI * 2);
+
+                const fruitGrad = ctx.createRadialGradient(leafSize * 0.2, leafSize * 0.5, 1, leafSize * 0.3, leafSize * 0.6, fruitRadius);
+                if (wilt > 0.4 || chlorosis > 0.5) {
+                    fruitGrad.addColorStop(0, '#d97706');
+                    fruitGrad.addColorStop(0.5, '#92400e');
+                    fruitGrad.addColorStop(1, '#451a03');
+                } else {
+                    fruitGrad.addColorStop(0, '#fef08a');
+                    fruitGrad.addColorStop(0.5, '#f59e0b');
+                    fruitGrad.addColorStop(1, '#dc2626');
+                }
+                ctx.fillStyle = fruitGrad;
+                ctx.shadowColor = (wilt > 0.4 || chlorosis > 0.5) ? "#78350f" : "#ef4444";
+                ctx.shadowBlur = Math.round(8 * (1 - wilt));
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            }
+
+            ctx.restore();
+        }
+
+        function renderScene() {
+            time += 0.035;
+            ctx.clearRect(0, 0, width, height);
+
+            // Interpolate values for buttery smooth visual response
+            state.currentRootFactor += (state.targetRootFactor - state.currentRootFactor) * 0.06;
+            state.currentCanopyFactor += (state.targetCanopyFactor - state.currentCanopyFactor) * 0.06;
+            state.currentWiltFactor += (state.targetWiltFactor - state.currentWiltFactor) * 0.04;
+
+            for (let key in state.symptoms) {
+                state.currentSymptoms[key] += (state.symptoms[key] - state.currentSymptoms[key]) * 0.05;
+            }
+
+            const rootGrowth = state.currentRootFactor;
+            const canopyGrowth = state.currentCanopyFactor;
+            const wilt = state.currentWiltFactor;
+            const dehydration = state.currentSymptoms.dehydration;
+            const digitalPests = state.currentSymptoms.digitalPests;
+
+            const groundY = height * 0.56;
+            const centerX = width * 0.5;
+
+            // 1. SKY GRADIENT
+            const skyGrad = ctx.createLinearGradient(0, 0, 0, groundY);
+            if (digitalPests > 0.4) {
+                skyGrad.addColorStop(0, '#15111d');
+                skyGrad.addColorStop(0.5, '#201625');
+                skyGrad.addColorStop(1, '#2c1e28');
+            } else if (wilt > 0.5) {
+                skyGrad.addColorStop(0, '#0f141d');
+                skyGrad.addColorStop(0.6, '#1a1d24');
+                skyGrad.addColorStop(1, '#24211b');
+            } else {
+                skyGrad.addColorStop(0, '#061325');
+                skyGrad.addColorStop(0.6, '#0d2836');
+                skyGrad.addColorStop(1, '#1b3b3a');
+            }
+            ctx.fillStyle = skyGrad;
+            ctx.fillRect(0, 0, width, groundY);
+
+            // Toxic purple smog if screen detox fails
+            if (digitalPests > 0.3) {
+                const smogGrad = ctx.createRadialGradient(centerX, groundY - 110, 20, centerX, groundY - 110, 160);
+                smogGrad.addColorStop(0, `rgba(147, 51, 234, ${digitalPests * 0.16})`);
+                smogGrad.addColorStop(0.6, `rgba(75, 85, 99, ${digitalPests * 0.12})`);
+                smogGrad.addColorStop(1, 'rgba(0,0,0,0)');
+                ctx.fillStyle = smogGrad;
+                ctx.fillRect(0, 0, width, groundY);
+            }
+
+            // Subtle dawn glow behind canopy
+            const sunGlow = ctx.createRadialGradient(centerX, groundY - 60, 10, centerX, groundY - 60, 190);
+            sunGlow.addColorStop(0, wilt > 0.5 ? 'rgba(217, 119, 6, 0.12)' : 'rgba(253, 224, 71, 0.16)');
+            sunGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+            ctx.fillStyle = sunGlow;
+            ctx.fillRect(0, 0, width, groundY);
+
+            // 2. SOIL (SUBTERRANEAN EARTH)
+            const soilGrad = ctx.createLinearGradient(0, groundY, 0, height);
+            if (dehydration > 0.5) {
+                soilGrad.addColorStop(0, '#3a2010');
+                soilGrad.addColorStop(0.4, '#24140a');
+                soilGrad.addColorStop(1, '#120804');
+            } else {
+                soilGrad.addColorStop(0, '#2d1807');
+                soilGrad.addColorStop(0.35, '#1b0d04');
+                soilGrad.addColorStop(1, '#0c0502');
+            }
+            ctx.fillStyle = soilGrad;
+            ctx.fillRect(0, groundY, width, height - groundY);
+
+            // Jagged soil cracks upon dehydration
+            if (dehydration > 0.3) {
+                ctx.save();
+                ctx.strokeStyle = `rgba(15, 7, 3, ${dehydration * 0.85})`;
+                ctx.lineWidth = 1.8;
+                const crackPositions = [0.18, 0.32, 0.44, 0.68, 0.82];
+                crackPositions.forEach(cp => {
+                    const crackX = width * cp;
+                    ctx.beginPath();
+                    ctx.moveTo(crackX, groundY);
+                    ctx.lineTo(crackX + 6, groundY + 12);
+                    ctx.lineTo(crackX - 4, groundY + 24);
+                    ctx.lineTo(crackX + 8, groundY + 38);
+                    ctx.stroke();
+
+                    ctx.beginPath();
+                    ctx.moveTo(crackX + 6, groundY + 12);
+                    ctx.lineTo(crackX + 16, groundY + 20);
+                    ctx.stroke();
+                });
+                ctx.restore();
+            }
+
+            // Surface grass line
+            ctx.beginPath();
+            ctx.moveTo(0, groundY);
+            ctx.lineTo(width, groundY);
+            ctx.strokeStyle = (wilt > 0.5 || dehydration > 0.5) ? '#a16207' : '#16a34a';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+
+            // Grass tufts
+            for (let gx = 12; gx < width; gx += 26) {
+                const gHeight = 5 + Math.sin(gx * 0.12) * 3;
+                ctx.beginPath();
+                ctx.moveTo(gx, groundY);
+                ctx.lineTo(gx - 2, groundY - gHeight);
+                ctx.lineTo(gx + 2, groundY);
+                ctx.fillStyle = (wilt > 0.5 || dehydration > 0.5) ? '#ca8a04' : '#22c55e';
+                ctx.fill();
+            }
+
+            // 3. TREE PARAMETERS
+            const maxRootDepth = Math.min(6, Math.floor(2 + rootGrowth * 4.6));
+            const rootLength = 12 + rootGrowth * (height * 0.15);
+            const rootWidth = 2.5 + rootGrowth * 11;
+
+            const maxTreeDepth = Math.min(7, Math.floor(2 + canopyGrowth * 5.4));
+            const trunkLength = 15 + canopyGrowth * (height * 0.23);
+            const trunkWidth = 3 + canopyGrowth * 16.5;
+            const wind = 0.05 + Math.sin(time * 0.5) * 0.03;
+
+            // 4. DRAW ROOTS
+            drawRoots(centerX - 4, groundY, rootLength, Math.PI / 2 + 0.36, 1, maxRootDepth, rootWidth * 0.85, rootGrowth);
+            drawRoots(centerX + 4, groundY, rootLength, Math.PI / 2 - 0.36, 1, maxRootDepth, rootWidth * 0.85, rootGrowth);
+            drawRoots(centerX, groundY + 2, rootLength * 1.12, Math.PI / 2, 1, maxRootDepth, rootWidth, rootGrowth);
+
+            // 5. DRAW CANOPY
+            drawBranch(centerX, groundY, trunkLength, -Math.PI / 2, 1, maxTreeDepth, trunkWidth, wind, canopyGrowth);
+
+            // DIGITAL PEST SIMULATION
+            if (digitalPests > 0.35) {
+                while (state.pests.length < 12) {
+                    state.pests.push({
+                        x: centerX + (Math.random() - 0.5) * 140,
+                        y: groundY - 40 - Math.random() * 110,
+                        speed: 0.03 + Math.random() * 0.04,
+                        offset: Math.random() * Math.PI * 2,
+                        size: 2.2 + Math.random() * 1.5
+                    });
+                }
+                ctx.fillStyle = "#ef4444";
+                state.pests.forEach(pest => {
+                    pest.offset += pest.speed;
+                    const px = pest.x + Math.sin(pest.offset * 2.5) * 18;
+                    const py = pest.y + Math.cos(pest.offset * 1.8) * 12;
+
+                    ctx.beginPath();
+                    ctx.arc(px, py, pest.size, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    ctx.strokeStyle = "rgba(255, 255, 255, 0.6)";
+                    ctx.lineWidth = 0.8;
+                    ctx.beginPath();
+                    ctx.moveTo(px, py);
+                    ctx.lineTo(px + 3, py - 3);
+                    ctx.moveTo(px, py);
+                    ctx.lineTo(px - 3, py - 3);
+                    ctx.stroke();
+                });
+            } else {
+                state.pests = [];
+            }
+
+            // FALLING DRY LEAVES
+            for (let fl = state.fallingLeaves.length - 1; fl >= 0; fl--) {
+                const leaf = state.fallingLeaves[fl];
+                leaf.y += leaf.vy;
+                leaf.x += Math.sin(time + leaf.y * 0.05) * 0.8 + leaf.vx;
+                leaf.rot += leaf.rotSpeed;
+
+                ctx.save();
+                ctx.translate(leaf.x, leaf.y);
+                ctx.rotate(leaf.rot);
+                ctx.beginPath();
+                ctx.ellipse(0, 0, leaf.size, leaf.size * 0.45, 0, 0, Math.PI * 2);
+                ctx.fillStyle = leaf.color;
+                ctx.fill();
+                ctx.restore();
+
+                if (leaf.y >= groundY) {
+                    state.fallingLeaves.splice(fl, 1);
+                }
+            }
+
+            // WATER PARTICLES
+            for (let i = state.wateringDrops.length - 1; i >= 0; i--) {
+                const drop = state.wateringDrops[i];
+                drop.y += drop.speed;
+                drop.x += Math.sin(time + drop.y * 0.05) * 0.6;
+
+                ctx.beginPath();
+                ctx.arc(drop.x, drop.y, drop.radius, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(56, 189, 248, ${drop.alpha})`;
+                ctx.fill();
+
+                if (drop.y >= groundY) {
+                    ctx.beginPath();
+                    ctx.ellipse(drop.x, groundY, 7, 2.5, 0, 0, Math.PI * 2);
+                    ctx.strokeStyle = "rgba(56, 189, 248, 0.7)";
+                    ctx.lineWidth = 1.2;
+                    ctx.stroke();
+                    state.wateringDrops.splice(i, 1);
+                }
+            }
+
+            // FLOATING MESSAGES ON CANVAS
+            for (let m = state.floatingMessages.length - 1; m >= 0; m--) {
+                const msg = state.floatingMessages[m];
+                msg.y -= 0.6;
+                msg.alpha -= 0.015;
+
+                ctx.save();
+                ctx.font = "bold 11px 'Hind Siliguri', Inter, sans-serif";
+                ctx.fillStyle = msg.color;
+                ctx.globalAlpha = Math.max(0, msg.alpha);
+                ctx.shadowColor = "rgba(0,0,0,0.8)";
+                ctx.shadowBlur = 4;
+                ctx.fillText(msg.text, msg.x, msg.y);
+                ctx.restore();
+
+                if (msg.alpha <= 0) {
+                    state.floatingMessages.splice(m, 1);
+                }
+            }
+
+            animationFrameId = requestAnimationFrame(renderScene);
+        }
+
+        // Trigger visual floating text feedback
+        function addFloatingMessage(text, color = "#34d399") {
+            const centerX = width * 0.5;
+            state.floatingMessages.push({
+                x: centerX - 40 + (Math.random() - 0.5) * 60,
+                y: height * 0.52,
+                text: text,
+                color: color,
+                alpha: 1.0
+            });
+        }
+
+        // Trigger rain / watering drops
+        function triggerWaterEffect() {
+            soundEngine.waterDrop();
+            for (let i = 0; i < 20; i++) {
+                state.wateringDrops.push({
+                    x: (width * 0.25) + Math.random() * (width * 0.5),
+                    y: 10 + Math.random() * 40,
+                    speed: 3.5 + Math.random() * 4,
+                    radius: 1.5 + Math.random() * 2,
+                    alpha: 0.6 + Math.random() * 0.4
+                });
+            }
+        }
+
+        // ==========================================
+        // UI BINDING & INTERACTION LOGIC
+        // ==========================================
+        function updateUI() {
+            calculateTargetFactors();
+            const currentStage = getStageForDay(state.day);
+            const completedCount = getCompletedTasksCount();
+            const percent = Math.round((completedCount / 10) * 100);
+            const { rootXP, canopyXP } = getTodayMetrics();
+            const wilt = state.targetWiltFactor;
+            const vitalityPercent = Math.max(10, Math.round((1 - wilt) * 100));
+
+            // Header counters
+            document.getElementById("streakDisplay").innerText = `দিন ${toBengaliNumber(state.day)} / ৩৬৫`;
+            document.getElementById("stageBadge").innerText = currentStage.name;
+            document.getElementById("dailyPercentBadge").innerText = `${toBengaliNumber(percent)}%`;
+
+            // Vitality Meter
+            const vitalityBadge = document.getElementById("vitalityBadge");
+            const vitalityIcon = document.getElementById("vitalityIcon");
+            if (vitalityBadge && vitalityIcon) {
+                vitalityBadge.innerText = `${toBengaliNumber(vitalityPercent)}% সতেজ`;
+                if (wilt >= 0.6) {
+                    vitalityBadge.className = "text-xs font-bold text-amber-500";
+                    vitalityIcon.innerText = "🍂";
+                } else if (wilt >= 0.3) {
+                    vitalityBadge.className = "text-xs font-bold text-yellow-400";
+                    vitalityIcon.innerText = "🌾";
+                } else {
+                    vitalityBadge.className = "text-xs font-bold text-emerald-400";
+                    vitalityIcon.innerText = "🍃";
+                }
+            }
+
+            // Live Diagnostic Badges
+            const badgesContainer = document.getElementById("symptomBadgesList");
+            const healthStatus = document.getElementById("diagnosticHealthStatus");
+            const activeSymptoms = [];
+
+            if (state.symptoms.dehydration > 0.4) {
+                activeSymptoms.push({
+                    text: "💧 মাটি ফাটা ও শুষ্কতা (পানি শূন্যতা)",
+                    cls: "bg-amber-500/20 text-amber-300 border-amber-500/30"
+                });
+            }
+            if (state.symptoms.digitalPests > 0.5) {
+                activeSymptoms.push({
+                    text: "🦟 পোকা ও ধোঁয়াশা (স্ক্রিন টাইম বেশি)",
+                    cls: "bg-purple-500/20 text-purple-300 border-purple-500/30"
+                });
+            }
+            if (state.symptoms.trunkWeakness > 0.5) {
+                activeSymptoms.push({
+                    text: "🪵 কান্ড দুর্বল ও ঝুঁকে পড়া (ব্যায়াম নেই)",
+                    cls: "bg-orange-500/20 text-orange-300 border-orange-500/30"
+                });
+            }
+            if (state.symptoms.leafBurn > 0.5) {
+                activeSymptoms.push({
+                    text: "🔥 পাতার ডগা পোড়া (চোখে অতিরিক্ত চাপ)",
+                    cls: "bg-rose-500/20 text-rose-300 border-rose-500/30"
+                });
+            }
+            if (state.symptoms.chlorosis > 0.5) {
+                activeSymptoms.push({
+                    text: "🟡 ক্লোরোসিস / ছোপ ছোপ দাগ (ডায়েট ঘাটতি)",
+                    cls: "bg-yellow-500/20 text-yellow-300 border-yellow-500/30"
+                });
+            }
+            if (state.symptoms.barkFatigue > 0.5) {
+                activeSymptoms.push({
+                    text: "🌑 ছাল ক্ষয় ও অবসাদ (ঘুমের ঘাটতি)",
+                    cls: "bg-slate-700/60 text-slate-300 border-slate-600"
+                });
+            }
+            if (rootXP === 0 && completedCount > 0) {
+                activeSymptoms.push({
+                    text: "🪨 মূল অনাহার (নামাজ ও তিলাওয়াত নেই)",
+                    cls: "bg-amber-600/20 text-amber-400 border-amber-500/30"
+                });
+            }
+
+            if (badgesContainer && healthStatus) {
+                if (activeSymptoms.length === 0) {
+                    healthStatus.innerText = "সম্পূর্ণ নিরোগ ও বলিষ্ঠ";
+                    healthStatus.className = "text-[10px] px-2 py-0.5 rounded-full font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30";
+                    badgesContainer.innerHTML = '<span class="text-emerald-400 font-medium flex items-center gap-1">✨ সব নিয়ম ঠিকঠাক থাকায় গাছে কোনো ব্যাধি নেই, পূর্ণ সতেজ!</span>';
+                } else {
+                    healthStatus.innerText = `${toBengaliNumber(activeSymptoms.length)} টি উপসর্গ বিদ্যমান`;
+                    healthStatus.className = "text-[10px] px-2 py-0.5 rounded-full font-bold bg-rose-500/20 text-rose-300 border-rose-500/30";
+                    badgesContainer.innerHTML = activeSymptoms.map(s =>
+                        `<span class="px-2 py-0.5 rounded-md border font-medium ${s.cls}">${s.text}</span>`
+                    ).join("");
+                }
+            }
+
+            // Canvas Status Hint
+            const canvasStatusText = document.getElementById("canvasStatusText");
+            if (canvasStatusText) {
+                if (completedCount === 0) {
+                    canvasStatusText.innerText = "🍂 চরম সতর্কতা: কোনো কাজ করা হয়নি! গাছটি শুকিয়ে মলিন...";
+                    canvasStatusText.className = "text-xs font-semibold text-rose-400";
+                } else if (activeSymptoms.length > 0) {
+                    canvasStatusText.innerText = `⚠️ সতর্কতা: ${activeSymptoms[0].text.replace(/^[^\s]+\s/, '')}!`;
+                    canvasStatusText.className = "text-xs font-semibold text-amber-300";
+                } else {
+                    canvasStatusText.innerText = currentStage.status + " গাছটি সম্পূর্ণ নিরোগ ও সতেজ সবুজ!";
+                    canvasStatusText.className = "text-xs font-medium text-emerald-200";
+                }
+            }
+
+            // Live XP Meters
+            document.getElementById("headerRootPower").innerText = `${toBengaliNumber(rootXP)} XP`;
+            document.getElementById("headerCanopyPower").innerText = `${toBengaliNumber(canopyXP)} XP`;
+
+            // Progress Bar
+            document.getElementById("dailyProgressBar").style.width = `${percent}%`;
+            document.getElementById("progressBarLabel").innerText = `${toBengaliNumber(completedCount)} / ১০ টি সম্পন্ন`;
+
+            // Metrics
+            const rootPercent = Math.round(state.targetRootFactor * 100);
+            document.getElementById("rootMetric").innerText = `${toBengaliNumber(rootPercent)}% গভীরে (${toBengaliNumber(rootXP)} XP)`;
+
+            const leafMetric = document.getElementById("leafMetric");
+            if (leafMetric) {
+                if (wilt >= 0.6 || activeSymptoms.length >= 3) {
+                    leafMetric.innerText = "🍂 রোগাক্রান্ত ও শুষ্ক";
+                    leafMetric.className = "font-bold text-rose-400 text-sm mt-0.5";
+                } else if (wilt >= 0.3 || activeSymptoms.length > 0) {
+                    leafMetric.innerText = "🌾 দাগযুক্ত ও হলদেটে";
+                    leafMetric.className = "font-bold text-yellow-400 text-sm mt-0.5";
+                } else {
+                    leafMetric.innerText = "🌿 সতেজ সবুজ";
+                    leafMetric.className = "font-bold text-emerald-400 text-sm mt-0.5";
+                }
+            }
+
+            document.getElementById("maturityMetric").innerText = currentStage.mat;
+
+            // Fruit Counter
+            const fruitBadge = document.getElementById("fruitCounter");
+            if (state.targetCanopyFactor >= 0.7 || state.day >= 270) {
+                fruitBadge.classList.remove("hidden");
+                const fruitCount = Math.floor(3 + (state.targetCanopyFactor * 16));
+                fruitBadge.innerText = `🍎 ফল ধরেছে: ${toBengaliNumber(fruitCount)} টি`;
+            } else {
+                fruitBadge.classList.add("hidden");
+            }
+        }
+
+        // Render water glasses grid
+        function renderWaterGlasses() {
+            const container = document.getElementById("glassesGrid");
+            container.innerHTML = "";
+            for (let g = 1; g <= state.waterTargetGlasses; g++) {
+                const glass = document.createElement("button");
+                const isDrank = g <= state.waterGlasses;
+                glass.className = `w-4 h-5 rounded-sm border transition flex items-center justify-center text-[9px] ${
+                    isDrank
+                        ? "bg-sky-500 border-sky-400 text-white shadow-sm shadow-sky-500/50"
+                        : "bg-slate-800/80 border-slate-700 text-slate-500 hover:border-sky-500/50"
+                }`;
+                glass.innerHTML = isDrank ? "💧" : "";
+                glass.title = `গ্লাস ${toBengaliNumber(g)}`;
+                glass.onclick = () => {
+                    state.waterGlasses = (state.waterGlasses === g) ? g - 1 : g;
+                    triggerWaterEffect();
+                    addFloatingMessage(`💧 পানি পান (${toBengaliNumber(state.waterGlasses)} গ্লাস)`, "#38bdf8");
+                    updateWaterUI();
+                };
+                container.appendChild(glass);
+            }
+            updateWaterUI();
+        }
+
+        function updateWaterUI() {
+            const liters = (state.waterGlasses * 0.25).toFixed(1);
+            document.getElementById("waterLitersText").innerText = `${toBengaliNumber(liters)} / ৪.০ লিটার`;
+            updateUI();
+        }
+
+        // ==========================================
+        // 1-1-1 MORNING BREATHING TIMER LOGIC
+        // ==========================================
+        let breathingTimer = null;
+        let breathingActive = false;
+        let breathingPhase = 0; // 0: Inhale, 1: Hold, 2: Exhale
+        let breathingCount = 4;
+
+        const breathingPhases = [
+            { text: "ইনহেল (শ্বাস গ্রহণ করুন)", color: "text-emerald-400", scale: "scale-125 bg-emerald-500/30 border-emerald-400", prompt: "নাক দিয়ে বুক ভরে শান্তভাবে বাতাস টানুন..." },
+            { text: "হোল্ড (শ্বাস ধরে রাখুন)", color: "text-amber-300", scale: "scale-125 bg-amber-500/30 border-amber-400", prompt: "ফুসফুস ভর্তি রেখে স্থির থাকুন..." },
+            { text: "এক্সহেল (শ্বাস ত্যাগ করুন)", color: "text-sky-300", scale: "scale-100 bg-sky-500/20 border-sky-400", prompt: "ধীরে ধীরে মুখ দিয়ে সম্পূর্ণ বাতাস ছাড়ুন..." }
+        ];
+
+        function toggleBreathing() {
+            const visual = document.getElementById("breathingVisualContainer");
+            const btnText = document.getElementById("breathingBtnText");
+            const btnIcon = document.getElementById("breathingBtnIcon");
+
+            if (breathingActive) {
+                // Stop breathing
+                clearInterval(breathingTimer);
+                breathingActive = false;
+                visual.classList.add("hidden");
+                btnText.innerText = "অনুশীলন শুরু করুন";
+                btnIcon.innerText = "▶";
+            } else {
+                // Start breathing
+                breathingActive = true;
+                visual.classList.remove("hidden");
+                btnText.innerText = "অনুশীলন থামান";
+                btnIcon.innerText = "⏹";
+                breathingPhase = 0;
+                breathingCount = 4;
+                runBreathingStep();
+                breathingTimer = setInterval(runBreathingStep, 1000);
+            }
+        }
+
+        function runBreathingStep() {
+            const phase = breathingPhases[breathingPhase];
+            const phaseTextEl = document.getElementById("breathingPhaseText");
+            const secondsEl = document.getElementById("breathingSecondsText");
+            const promptEl = document.getElementById("breathingPrompt");
+            const pulsar = document.getElementById("breathingPulsar");
+
+            phaseTextEl.innerText = phase.text;
+            phaseTextEl.className = `text-xs font-bold ${phase.color}`;
+            secondsEl.innerText = toBengaliNumber(breathingCount);
+            promptEl.innerText = phase.prompt;
+
+            pulsar.className = `absolute w-24 h-24 rounded-full border-2 transition-all duration-1000 flex items-center justify-center ${phase.scale}`;
+
+            if (breathingCount === 4) {
+                soundEngine.breatheChime(breathingPhase === 0 ? 392 : (breathingPhase === 1 ? 440 : 330));
+            }
+
+            breathingCount--;
+            if (breathingCount < 1) {
+                breathingCount = 4;
+                breathingPhase = (breathingPhase + 1) % 3;
+            }
+        }
+
+        // ==========================================
+        // INITIALIZATION & EVENT LISTENERS
+        // ==========================================
+        window.addEventListener("load", () => {
+            resizeCanvas();
+
+            // Task Checkboxes Binding
+            document.querySelectorAll(".task-checkbox").forEach(cb => {
+                const key = cb.id.replace("task_", "");
+                cb.addEventListener("change", (e) => {
+                    state.tasks[key] = e.target.checked;
+                    if (e.target.checked) {
+                        soundEngine.leafChime();
+                        addFloatingMessage(`🌿 অর্জিত হলো (+১০)`, "#34d399");
+                    } else {
+                        addFloatingMessage(`⚠️ অভ্যাস প্রত্যাহার`, "#f87171");
+                    }
+                    updateUI();
+                });
+            });
+
+            // Prayers Buttons Binding
+            document.querySelectorAll(".prayer-btn").forEach(btn => {
+                const prayer = btn.getAttribute("data-prayer");
+                btn.addEventListener("click", () => {
+                    state.prayers[prayer] = !state.prayers[prayer];
+                    if (state.prayers[prayer]) {
+                        btn.classList.remove("bg-slate-800", "text-slate-300");
+                        btn.classList.add("bg-amber-500/20", "text-amber-300", "border-amber-400/60", "font-bold");
+                        soundEngine.rootChime();
+                        addFloatingMessage(`🪨 মূল গভীর হলো (+৫)`, "#fbbf24");
+                    } else {
+                        btn.classList.add("bg-slate-800", "text-slate-300");
+                        btn.classList.remove("bg-amber-500/20", "text-amber-300", "border-amber-400/60", "font-bold");
+                    }
+                    updateUI();
+                });
+            });
+
+            // Day Slider Binding
+            const daySlider = document.getElementById("daySlider");
+            daySlider.addEventListener("input", (e) => {
+                state.day = parseInt(e.target.value);
+                const stage = getStageForDay(state.day);
+                document.getElementById("sliderDayLabel").innerText = `দিন ${toBengaliNumber(state.day)} (${stage.mat})`;
+                updateUI();
+            });
+
+            // Water quick buttons
+            document.getElementById("addGlassBtn").addEventListener("click", () => {
+                if (state.waterGlasses < state.waterTargetGlasses) {
+                    state.waterGlasses++;
+                    triggerWaterEffect();
+                    addFloatingMessage(`💧 পানি পান (+১)`, "#38bdf8");
+                    renderWaterGlasses();
+                }
+            });
+
+            document.getElementById("resetWaterBtn").addEventListener("click", () => {
+                state.waterGlasses = 0;
+                renderWaterGlasses();
+            });
+
+            // Canvas Water Overlay Button
+            document.getElementById("canvasWaterBtn").addEventListener("click", () => {
+                if (state.waterGlasses < state.waterTargetGlasses) {
+                    state.waterGlasses = Math.min(state.waterTargetGlasses, state.waterGlasses + 2);
+                    triggerWaterEffect();
+                    addFloatingMessage(`💧 গাছে পানি সিঞ্চন হলো`, "#38bdf8");
+                    renderWaterGlasses();
+                }
+            });
+
+            // Breathing action button
+            document.getElementById("breathingActionBtn").addEventListener("click", toggleBreathing);
+
+            // Sound FX Toggle
+            document.getElementById("soundToggleBtn").addEventListener("click", () => {
+                state.soundEnabled = !state.soundEnabled;
+                document.getElementById("soundIcon").innerText = state.soundEnabled ? "🔊" : "🔇";
+            });
+
+            // Lock Day Progress Button
+            document.getElementById("lockDayBtn").addEventListener("click", () => {
+                const completedCount = getCompletedTasksCount();
+                if (completedCount >= 5) {
+                    soundEngine.leafChime();
+                    addFloatingMessage(`🌟 চমৎকার! দিন ${toBengaliNumber(state.day)} সম্পন্ন!`, "#10b981");
+                } else {
+                    addFloatingMessage(`⚠️ স্বল্প প্রবৃদ্ধিসহ পরবর্তী দিনে পদার্পণ`, "#f59e0b");
+                }
+
+                // Advance day
+                if (state.day < state.maxDays) {
+                    state.day++;
+                    daySlider.value = state.day;
+                    document.getElementById("sliderDayLabel").innerText = `দিন ${toBengaliNumber(state.day)}`;
+                }
+
+                // Reset today's daily checklist for fresh new day
+                for (let k in state.tasks) {
+                    state.tasks[k] = false;
+                    const el = document.getElementById(`task_${k}`);
+                    if (el) el.checked = false;
+                }
+                for (let p in state.prayers) {
+                    state.prayers[p] = false;
+                }
+                document.querySelectorAll(".prayer-btn").forEach(btn => {
+                    btn.classList.add("bg-slate-800", "text-slate-300");
+                    btn.classList.remove("bg-amber-500/20", "text-amber-300", "border-amber-400/60", "font-bold");
+                });
+
+                state.waterGlasses = 0;
+                renderWaterGlasses();
+                updateUI();
+            });
+
+            // Reset Today Checklist Button
+            document.getElementById("resetTodayBtn").addEventListener("click", () => {
+                for (let k in state.tasks) {
+                    state.tasks[k] = false;
+                    const el = document.getElementById(`task_${k}`);
+                    if (el) el.checked = false;
+                }
+                for (let p in state.prayers) {
+                    state.prayers[p] = false;
+                }
+                document.querySelectorAll(".prayer-btn").forEach(btn => {
+                    btn.classList.add("bg-slate-800", "text-slate-300");
+                    btn.classList.remove("bg-amber-500/20", "text-amber-300", "border-amber-400/60", "font-bold");
+                });
+                state.waterGlasses = 0;
+                renderWaterGlasses();
+                updateUI();
+            });
+
+            // Initial render
+            renderWaterGlasses();
+            updateUI();
+            renderScene();
+        });
+    </script>
+</body>
+</html>
